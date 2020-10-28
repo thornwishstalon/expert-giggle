@@ -31,9 +31,13 @@ import pandas as pd
 if __name__ == '__main__':
     print('go go go!')
     # data = pd.read_csv('./data/USDA_Food_Database.csv')
-    columns = ['Energy_(kcal)', 'Protein_(g)']
+    #columns = ['Energy_(kcal)', 'Protein_(g)', 'Carbohydrt_(g)', 'Water_(g)', 'FA_Sat_(g)', 'Zinc_(mg)', 'Sugar_Tot_(g)',
+    #           'Iron_(mg)', 'Phosphorus_(mg)']
+    columns = ['Energy_(kcal)', 'Protein_(g)', 'Carbohydrt_(g)', 'Water_(g)', 'FA_Sat_(g)', 'Zinc_(mg)']
+    #columns = [ 'Water_(g)', 'FA_Sat_(g)', 'Zinc_(mg)','Sugar_Tot_(g)']
+
     # columns = ['Energy_(kcal)', 'Carbohydrt_(g)']
-    #columns = ['Energy_(kcal)', 'Water_(g)']
+    # columns = ['Energy_(kcal)', 'Water_(g)']
     # columns = ['Energy_(kcal)', 'FA_Sat_(g)']
     labels = {
         1: "milk products",
@@ -54,17 +58,36 @@ if __name__ == '__main__':
         "MEAT": 2,
         "BEEF": 2,
         "VEAL": 2,
+        "LAMB": 2,
+        "FISH":3,
+        "SEAFOOD":3,
+        "SNACKS":4,
+        "SWEETS":4,
+        "PROCESSED FOOD":4,
     }
 
     reader = core.Data()
-    #data = reader.read_data('./data/USDA_Food_Database.csv', columns, merged_groups, generate_label=True)
+    # data = reader.read_data('./data/USDA_Food_Database.csv', columns, merged_groups, generate_label=True)
     data = reader.read_data('./data/USDA_Food_Database.csv', columns, None, generate_label=True)
-    frame = pd.DataFrame({"X Value": data[:, 0], "Y Value": data[:, 1], "Category": data[:, 2]})
 
-    groups = frame.groupby("Category")
-    for name, group in groups:
-        plt.plot(group["X Value"], group["Y Value"], marker="o", linestyle="", label=name)
-    plt.legend()
+    print('generating plots...')
+
+    for k in range(0, len(columns)):
+        for l in range(0, len(columns)):
+
+            if k < l and not k == l:
+                print(k)
+                print(l)
+                frame = pd.DataFrame(
+                    {"X Value": data[:, k], "Y Value": data[:, l], "Category": data[:, len(columns)]})
+
+                plt.figure()
+                groups = frame.groupby("Category")
+                for name, group in groups:
+                    plt.plot(group["X Value"], group["Y Value"], marker="o", linestyle="", label=name)
+
+                plt.title("{0} v.s. {1}".format(columns[k], columns[l]))
+                plt.legend()
 
     # Plot
     # plt.scatter(data.data[example1:100, 0], data.data[example1:100, example1], alpha=0.5)
