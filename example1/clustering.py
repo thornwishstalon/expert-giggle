@@ -31,10 +31,10 @@ import pandas as pd
 if __name__ == '__main__':
     print('go go go!')
     # data = pd.read_csv('./data/USDA_Food_Database.csv')
-    #columns = ['Energy_(kcal)', 'Protein_(g)', 'Carbohydrt_(g)', 'Water_(g)', 'FA_Sat_(g)', 'Zinc_(mg)', 'Sugar_Tot_(g)',
-    #           'Iron_(mg)', 'Phosphorus_(mg)']
-    columns = ['Energy_(kcal)', 'Protein_(g)', 'Carbohydrt_(g)', 'Water_(g)', 'FA_Sat_(g)', 'Zinc_(mg)']
-    #columns = [ 'Water_(g)', 'FA_Sat_(g)', 'Zinc_(mg)','Sugar_Tot_(g)']
+    columns = ['Energy_(kcal)', 'Protein_(g)', 'Carbohydrt_(g)', 'Water_(g)', 'FA_Sat_(g)', 'Zinc_(mg)',
+               'Sugar_Tot_(g)','Iron_(mg)', 'Phosphorus_(mg)']
+    #columns = ['Energy_(kcal)', 'Protein_(g)', 'Carbohydrt_(g)', 'Water_(g)', 'FA_Sat_(g)', 'Zinc_(mg)']
+    # columns = [ 'Water_(g)', 'FA_Sat_(g)', 'Zinc_(mg)','Sugar_Tot_(g)']
 
     # columns = ['Energy_(kcal)', 'Carbohydrt_(g)']
     # columns = ['Energy_(kcal)', 'Water_(g)']
@@ -42,6 +42,8 @@ if __name__ == '__main__':
     labels = {
         1: "milk products",
         2: "meats",
+        3: "fish etc",
+        4: "processed etc",
     }
     merged_groups = {
         'CHEESE': 1,
@@ -59,16 +61,20 @@ if __name__ == '__main__':
         "BEEF": 2,
         "VEAL": 2,
         "LAMB": 2,
-        "FISH":3,
-        "SEAFOOD":3,
-        "SNACKS":4,
-        "SWEETS":4,
-        "PROCESSED FOOD":4,
+        "FISH": 3,
+        "SEAFOOD": 3,
+        "SNACKS": 4,
+        "SWEETS": 4,
+        "PROCESSED FOOD": 4,
     }
+
+    whitelist = ['VEGETABLES', 'FRUITS', 'MILK', 'CHEESE', 'BEEF', 'CHICKEN',
+                 'PORK', 'VEAL', 'MEAT', 'GOOSE', 'LAMB', 'FISH', 'SEAFOOD', 'PROCESSED FOOD']
 
     reader = core.Data()
     # data = reader.read_data('./data/USDA_Food_Database.csv', columns, merged_groups, generate_label=True)
-    data = reader.read_data('./data/USDA_Food_Database.csv', columns, None, generate_label=True)
+    data = reader.read_data('./data/USDA_Food_Database.csv', columns, merged_groups,
+                            generate_label=True, group_whitelist=whitelist)
 
     print('generating plots...')
 
@@ -84,7 +90,7 @@ if __name__ == '__main__':
                 plt.figure()
                 groups = frame.groupby("Category")
                 for name, group in groups:
-                    plt.plot(group["X Value"], group["Y Value"], marker="o", linestyle="", label=name)
+                    plt.scatter(group["X Value"], group["Y Value"], marker="o", label=name, alpha=0.2)
 
                 plt.title("{0} v.s. {1}".format(columns[k], columns[l]))
                 plt.legend()

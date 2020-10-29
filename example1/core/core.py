@@ -34,7 +34,7 @@ class Data:
         else:
             return key
 
-    def read_data(self, filepath, columns=None, groups=None, generate_label=False):
+    def read_data(self, filepath, columns=None, groups=None, generate_label=False, group_whitelist=None):
         """read the data file"""
         if groups is not None:
             self.label_counter = len(groups)
@@ -68,6 +68,10 @@ class Data:
                             data_item.append(float(value))
 
                 label = self.get_label(self.get_label(row['Keyword'], generate_label))
+
+                if group_whitelist and not row['Keyword'] in group_whitelist:
+                    # skip entry
+                    continue
 
                 data_item.append(label)
                 self.data.append(data_item)
