@@ -9,12 +9,14 @@ class Data:
     groups: Dict[str, str]
     columns: []
     data: []
+    t: []
     labels: {}
     label_counter = 0
 
     def __init__(self):
         self.columns = []
         self.data = []
+        self.t = []
         self.labels = {}
         self.label_counter = 0
         self.groups = {}
@@ -46,12 +48,15 @@ class Data:
             return
 
         print("reading file ... ")
-        with open(filepath, newline='') as csvfile:
+        with open(filepath, newline='',encoding='utf-8-sig') as csvfile:
             reader = csv.DictReader(csvfile)
 
             if columns is not None:
                 print("columns defined")
                 self.columns = columns
+                store_columns = False
+            else:
+                store_columns = True
 
             for row in reader:
                 data_item = []
@@ -64,20 +69,31 @@ class Data:
                             data_item.append(float(-1.0))
                 else:
                     for key, value in row.items():
-                        if key not in ['No', 'Keyword', 'Name'] and value is not value:
-                            data_item.append(float(value))
 
+                        if key not in ['No', 'Keyword', 'Name']:
+                            if store_columns:
+                                self.columns.append(key)
+
+                            if is_not_blank(value):
+                                try:
+                                    value = float(value)
+                                    data_item.append(value)
+                                except ValueError:
+                                    pass
+                            else:
+                                data_item.append(-1.0)
+                store_columns = False
                 label = self.get_label(self.get_label(row['Keyword'], generate_label))
 
                 if group_whitelist and not row['Keyword'] in group_whitelist:
                     # skip entry
                     continue
 
-                data_item.append(label)
+                self.t.append(label)
                 self.data.append(data_item)
 
         print("[DONE]")
-        return np.array(self.data)
+        return np.array(self.data), np.array(self.t),
 
 
 def is_not_blank(myString):

@@ -27,14 +27,15 @@ from example1.core import core
 
 import matplotlib.pyplot as plt
 import pandas as pd
+from sklearn.preprocessing import scale
 
 if __name__ == '__main__':
     print('go go go!')
     # data = pd.read_csv('./data/USDA_Food_Database.csv')
     columns = ['Energy_(kcal)', 'Protein_(g)', 'Carbohydrt_(g)', 'Water_(g)', 'FA_Sat_(g)', 'Zinc_(mg)',
                'Sugar_Tot_(g)','Iron_(mg)', 'Phosphorus_(mg)']
-    #columns = ['Energy_(kcal)', 'Protein_(g)', 'Carbohydrt_(g)', 'Water_(g)', 'FA_Sat_(g)', 'Zinc_(mg)']
-    # columns = [ 'Water_(g)', 'FA_Sat_(g)', 'Zinc_(mg)','Sugar_Tot_(g)']
+    # columns = ['Energy_(kcal)', 'Protein_(g)', 'Carbohydrt_(g)', 'Water_(g)', 'FA_Sat_(g)', 'Zinc_(mg)']
+    #columns = ['Riboflavin_(mg)', 'Energy_(kcal)']
 
     # columns = ['Energy_(kcal)', 'Carbohydrt_(g)']
     # columns = ['Energy_(kcal)', 'Water_(g)']
@@ -73,9 +74,11 @@ if __name__ == '__main__':
 
     reader = core.Data()
     # data = reader.read_data('./data/USDA_Food_Database.csv', columns, merged_groups, generate_label=True)
-    data = reader.read_data('./data/USDA_Food_Database.csv', columns, merged_groups,
-                            generate_label=True, group_whitelist=whitelist)
+    data, t = reader.read_data('./data/USDA_Food_Database.csv', columns=columns, groups=merged_groups,
+                               generate_label=True, group_whitelist=whitelist)
 
+    data = scale(data)
+    print(t)
     print('generating plots...')
 
     for k in range(0, len(columns)):
@@ -85,7 +88,7 @@ if __name__ == '__main__':
                 print(k)
                 print(l)
                 frame = pd.DataFrame(
-                    {"X Value": data[:, k], "Y Value": data[:, l], "Category": data[:, len(columns)]})
+                    {"X Value": data[:, k], "Y Value": data[:, l], "Category": t})
 
                 plt.figure()
                 groups = frame.groupby("Category")
