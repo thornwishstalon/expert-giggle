@@ -28,6 +28,11 @@ from example1.core import core
 import matplotlib.pyplot as plt
 import pandas as pd
 from sklearn.preprocessing import scale
+from sklearn.preprocessing import normalize
+from sklearn.preprocessing import MinMaxScaler
+from matplotlib import cm
+import seaborn as sn
+
 
 if __name__ == '__main__':
     print('go go go!')
@@ -67,6 +72,8 @@ if __name__ == '__main__':
         "SNACKS": 4,
         "SWEETS": 4,
         "PROCESSED FOOD": 4,
+        "VEGETABLES": 5,
+        "FRUITS": 5,
     }
 
     whitelist = ['VEGETABLES', 'FRUITS', 'MILK', 'CHEESE', 'BEEF', 'CHICKEN',
@@ -75,30 +82,26 @@ if __name__ == '__main__':
     reader = core.Data()
     # data = reader.read_data('./data/USDA_Food_Database.csv', columns, merged_groups, generate_label=True)
     data, t = reader.read_data('./data/USDA_Food_Database.csv', columns=columns, groups=None,
-                               generate_label=True, group_whitelist=None)
+                               generate_label=False, group_whitelist=None)
 
-    #data = scale(data)
-    print(t)
-    print('generating plots...')
+    #scaler = MinMaxScaler()
+    #data = scaler.fit_transform(data)
 
-    for k in range(0, len(columns)):
-        for l in range(0, len(columns)):
+    frame = pd.DataFrame(
+        {
+         columns[0]: data[:, 0], # energy
+         columns[2]: data[:, 2], # carbs
+         columns[6]: data[:, 6], # sugar
+         columns[3]: data[:, 3], # water
+         columns[4]: data[:, 4], # salt
+         columns[5]: data[:, 5], # zinc
+         columns[7]: data[:, 7], # iron
+         columns[8]: data[:, 8], # phosphor
+         columns[1]: data[:, 1], # protein
+         "Category": t})
 
-            if k < l and not k == l:
-                frame = pd.DataFrame(
-                    {"X Value": data[:, k], "Y Value": data[:, l], "Category": t})
-
-                plt.figure()
-                groups = frame.groupby("Category")
-                for name, group in groups:
-                    plt.scatter(group["X Value"], group["Y Value"], marker="o", label=name, alpha=0.2)
-
-                plt.title("{0} v.s. {1}".format(columns[k], columns[l]))
-                plt.legend()
-
-    # Plot
-    # plt.scatter(data.data[example1:100, 0], data.data[example1:100, example1], alpha=0.5)
-    # plt.scatter(data.data[example1:1000, 0], data.data[example1:1000, example1], alpha=0.5)
-    # plt.scatter(data.data[:, 0], data.data[:, example1], alpha=0.5)
-
+    corrMatrix = frame.corr()
+    sn.heatmap(corrMatrix, annot=True,linewidth=0.5)
     plt.show()
+
+
