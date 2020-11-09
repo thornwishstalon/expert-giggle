@@ -31,16 +31,16 @@ from sklearn.preprocessing import scale
 from sklearn.preprocessing import normalize
 from sklearn.preprocessing import MinMaxScaler
 from matplotlib import cm
+import numpy as np
 import seaborn as sn
-
 
 if __name__ == '__main__':
     print('go go go!')
     # data = pd.read_csv('./data/USDA_Food_Database.csv')
     columns = ['Energy_(kcal)', 'Protein_(g)', 'Carbohydrt_(g)', 'Water_(g)', 'FA_Sat_(g)', 'Zinc_(mg)',
-               'Sugar_Tot_(g)','Iron_(mg)', 'Phosphorus_(mg)']
+               'Sugar_Tot_(g)', 'Iron_(mg)', 'Phosphorus_(mg)']
     # columns = ['Energy_(kcal)', 'Protein_(g)', 'Carbohydrt_(g)', 'Water_(g)', 'FA_Sat_(g)', 'Zinc_(mg)']
-    #columns = ['Riboflavin_(mg)', 'Energy_(kcal)']
+    # columns = ['Riboflavin_(mg)', 'Energy_(kcal)']
 
     # columns = ['Energy_(kcal)', 'Carbohydrt_(g)']
     # columns = ['Energy_(kcal)', 'Water_(g)']
@@ -81,27 +81,46 @@ if __name__ == '__main__':
 
     reader = core.Data()
     # data = reader.read_data('./data/USDA_Food_Database.csv', columns, merged_groups, generate_label=True)
-    data, t = reader.read_data('./data/USDA_Food_Database.csv', columns=columns, groups=None,
-                               generate_label=False, group_whitelist=None)
+    data, t, read_columns = reader.read_data('./data/USDA_Food_Database.csv', columns=None, groups=None,
+                                             generate_label=False, group_whitelist=None)
+    original_data = data
+    label_matrix = np.empty([len(read_columns), len(read_columns)], dtype="S20")
+    print(len(read_columns))
 
-    #scaler = MinMaxScaler()
-    #data = scaler.fit_transform(data)
+    for l in range(0, len(read_columns)):
+        for k in range(0, len(read_columns)):
+            label_matrix[l, k] = ascii(read_columns[l] + "/" + read_columns[k])
 
-    frame = pd.DataFrame(
-        {
-         columns[0]: data[:, 0], # energy
-         columns[2]: data[:, 2], # carbs
-         columns[6]: data[:, 6], # sugar
-         columns[3]: data[:, 3], # water
-         columns[4]: data[:, 4], # salt
-         columns[5]: data[:, 5], # zinc
-         columns[7]: data[:, 7], # iron
-         columns[8]: data[:, 8], # phosphor
-         columns[1]: data[:, 1], # protein
-         "Category": t})
+    corrcoef = np.corrcoef(data)
+    print(np.argwhere(corrcoef > 0.9 ))
+
+
+    # scaler = MinMaxScaler()
+    # data = scaler.fit_transform(data)
+    dict = {}
+    for l in range(0, len(read_columns)):
+        dict[read_columns[l]] = data[:, l]
+    dict["Category"] = t
+
+    frame = pd.DataFrame(dict)
+
+    # frame = pd.DataFrame(
+    #     {
+    #         columns[0]: data[:, 0],  # energy
+    #         columns[2]: data[:, 2],  # carbs
+    #         columns[6]: data[:, 6],  # sugar
+    #         columns[3]: data[:, 3],  # water
+    #         columns[4]: data[:, 4],  # salt
+    #         columns[5]: data[:, 5],  # zinc
+    #         columns[7]: data[:, 7],  # iron
+    #         columns[8]: data[:, 8],  # phosphor
+    #         columns[1]: data[:, 1],  # protein
+    #         "Category": t})
 
     corrMatrix = frame.corr()
-    sn.heatmap(corrMatrix, annot=True,linewidth=0.5)
+    print(corrMatrix)
+    sn.heatmap(corrMatrix, annot=True, linewidth=.5)
     plt.show()
 
-
+# Water_(g),Energy_(kcal) _ :-0.900532
+#  Folic_Acid_(µg) Choline_Tot_ (mg)

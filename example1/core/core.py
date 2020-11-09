@@ -20,6 +20,7 @@ class Data:
         self.labels = {}
         self.label_counter = 0
         self.groups = {}
+        self.header = []
 
     def get_label(self, key, generate_label=False):
         if self.groups is not None:
@@ -93,7 +94,7 @@ class Data:
                 self.data.append(data_item)
 
         print("[DONE]")
-        return np.array(self.data), np.array(self.t),
+        return np.array(self.data), np.array(self.t), self.columns
 
 
 def is_not_blank(myString):

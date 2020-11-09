@@ -124,7 +124,7 @@ if __name__ == '__main__':
     # data, t = reader.read_data('./data/USDA_Food_Database.csv', None, None,
     #                        generate_label=True, group_whitelist=whitelist)
 
-    data, t = reader.read_data('./data/USDA_Food_Database.csv', columns=None, groups=None,
+    data, t, read_columns = reader.read_data('./data/USDA_Food_Database.csv', columns=None, groups=None,
                                generate_label=True, group_whitelist=whitelist)
     data = scale(data)
     print('generating plots...')

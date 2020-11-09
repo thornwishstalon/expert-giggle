@@ -39,6 +39,7 @@ if __name__ == '__main__':
                'Sugar_Tot_(g)','Iron_(mg)', 'Phosphorus_(mg)']
     # columns = ['Energy_(kcal)', 'Protein_(g)', 'Carbohydrt_(g)', 'Water_(g)', 'FA_Sat_(g)', 'Zinc_(mg)']
     #columns = ['Riboflavin_(mg)', 'Energy_(kcal)']
+    #columns = ['Folic_Acid_(µg)','Folate_DFE_(µg)']
 
     # columns = ['Energy_(kcal)', 'Carbohydrt_(g)']
     # columns = ['Energy_(kcal)', 'Water_(g)']
@@ -79,27 +80,34 @@ if __name__ == '__main__':
 
     reader = core.Data()
     # data = reader.read_data('./data/USDA_Food_Database.csv', columns, merged_groups, generate_label=True)
-    data, t = reader.read_data('./data/USDA_Food_Database.csv', columns=columns, groups=None,
+    data, t,read_columns = reader.read_data('./data/USDA_Food_Database.csv', columns=columns, groups=None,
                                generate_label=False, group_whitelist=None)
 
     scaler = MinMaxScaler()
     data = scaler.fit_transform(data)
-    frame = pd.DataFrame(
-        {
-         columns[0]: data[:, 0], # energy
-         columns[2]: data[:, 2], # carbs
-         columns[6]: data[:, 6], # sugar
-         columns[3]: data[:, 3], # water
-         columns[4]: data[:, 4], # salt
-         columns[5]: data[:, 5], # zinc
-         columns[7]: data[:, 7], # iron
-         columns[8]: data[:, 8], # phosphor
-         columns[1]: data[:, 1], # protein
-         "Category": t})
+
+    dict = {}
+    for l in range(0, len(read_columns)):
+        dict[read_columns[l]] = data[:, l]
+    dict["Category"] = t
+    frame = pd.DataFrame( dict)
+
+    #     {
+    #      columns[0]: data[:, 0], # energy
+    #      columns[2]: data[:, 2], # carbs
+    #      columns[6]: data[:, 6], # sugar
+    #      columns[3]: data[:, 3], # water
+    #      columns[4]: data[:, 4], # salt
+    #      columns[5]: data[:, 5], # zinc
+    #      columns[7]: data[:, 7], # iron
+    #      columns[8]: data[:, 8], # phosphor
+    #      columns[1]: data[:, 1], # protein
+    #      "Category": t})
 
 
     pd.plotting.parallel_coordinates(frame, "Category", colormap=cm.get_cmap('tab20'))
     #pd.plotting.parallel_coordinates(frame, "Category", colormap=None)
+    plt.gca().legend_.remove()
     plt.show()
 
 
