@@ -28,8 +28,10 @@ from example1.core import core
 
 import matplotlib.pyplot as plt
 import pandas as pd
-import numpy as np
+from math import pi
+
 import re
+import numpy as np
 from sklearn.preprocessing import scale
 
 
@@ -106,19 +108,14 @@ if __name__ == '__main__':
         "PROCESSED FOOD": 4,
     }
 
-    # whitelist = ['VEGETABLES', 'FRUITS', 'MILK', 'CHEESE', 'BEEF', 'CHICKEN',
-    #             'PORK', 'VEAL', 'MEAT', 'GOOSE', 'LAMB', 'FISH', 'SEAFOOD', 'PROCESSED FOOD']
-    # whitelist = ['BEEF', 'PORK', 'VENISON', 'VEAL', 'CHICKEN']
-    # whitelist = ['CHEESE', 'CREAM', 'MILK', 'YOGURT']
-    # whitelist = ['FISH', 'SEAFOOD', 'CHICKEN', 'TURKEY']
-    # whitelist = ['ANIMAL FAT','VEGETABLE FAT']
+    # data = reader.read_data('./data/USDA_Food_Database.csv', columns, merged_groups, generate_label=True)
     whitelist = ['PROCESSED FOOD']
 
     reader = core.Data()
     data, t, read_columns = reader.read_data('./data/USDA_Food_Database.csv', columns=None, groups=None,
                                              generate_label=False, group_whitelist=whitelist, filter_func=filterfunc)
-
-    # data = scale(data)
+    print(read_columns)
+    data = scale(data)
     print('generating plots...')
 
     dict = {}
@@ -127,40 +124,35 @@ if __name__ == '__main__':
     dict["Category"] = t
 
     frame = pd.DataFrame(dict)
+    groups = frame.groupby("Category")
 
-    boxplot_data = []
-    max_cols = 9
-    fig, ax = plt.subplots(5, max_cols, sharex=True)
+    N = len(read_columns) - 1
+    group_id = 0
+    for name, group in groups:
+        # values
+        fig = plt.figure()
+        ax = plt.subplot(polar=True)
+        values_data = group.to_numpy()[:, 0:-1]
+        c_data = len(values_data)
+        plt.title(name + " (n={})".format(c_data))
+        for i in range(c_data):
+            # print(values)
+            values = values_data[i, :]
+            values += values[:1]  # repeat first value to close poly
+            # calculate angle for each category
+            K = len(values)
+            # calculate angle for each category
+            angles = [n / float(N) * 2 * pi for n in range(N)]
+            angles += angles[:1]  # repeat first angle to close poly
+            # plot
+            plt.polar(angles, values, marker='.', alpha=0.2, color='black')  # lines
+            # plt.fill(angles, values, alpha=0.3)  # area
 
-    row = -1
-    i = 0
-    for k in range(0, len(read_columns)):
-        frame = pd.DataFrame({"Value": data[:, k], "Category": t})
+            # xticks
+            plt.xticks(angles, read_columns)
+            # yticks
+            ax.set_rlabel_position(0)  # yticks position
+            plt.yticks([-2, 0, 2, 4, 6, 8, 10], color="grey", size=6)
+            # plt.ylim(0, 30)
 
-        if i % max_cols == 0:
-            row += 1
-
-        groups = frame.groupby("Category")
-        group_data = []
-        labels = []
-        for name, group in groups:
-            labels.append(name)
-            group_data.append((group['Value']))
-
-        ax[row][i % max_cols].set_title(read_columns[k])
-        ax[row][i % max_cols].boxplot(group_data)
-
-        # plt.close()
-        i += 1
-    # fig.suptitle('(1){0} (2){1} (3){2} (4){3} (5){4}'.format(labels[0], labels[1], labels[2], labels[3], labels[4]),
-    #             fontsize=12)
-
-    title = ""
-    index = 0
-    for label in labels:
-        index += 1
-        title += "({}) {} ".format( index, label)
-
-    fig.suptitle(title, fontsize=12)
-    # plt.xticks([0, 1, 2], labels)
     plt.show()

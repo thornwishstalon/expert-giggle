@@ -27,19 +27,52 @@ from example1.core import core
 
 import matplotlib.pyplot as plt
 import pandas as pd
-from sklearn.preprocessing import scale
-from sklearn.preprocessing import normalize
+import re
 from sklearn.preprocessing import MinMaxScaler
 from matplotlib import cm
+
+
+def filterfunc(data_array):
+    txt = data_array['Name']
+    x = re.search(".*MCDONALD'S.*", txt)
+    if x:
+        return "MCDONALD'S"
+    x = re.search(".*WENDY'S.*", txt)
+    if x:
+        return "WENDY'S"
+    x = re.search(".*BURGER KING.*", txt)
+    if x:
+        return "BURGER KING"
+    x = re.search(".*BURGER KING.*", txt)
+    if x:
+        return "BURGER KING"
+    x = re.search(".*TACO BELL.*", txt)
+    if x:
+        return "TACO BELL"
+
+    x = re.search(".*PIZZA HUT.*", txt)
+    if x:
+        return "PIZZA HUT"
+
+    x = re.search(".*DOMINO'S.*", txt)
+    if x:
+        return "DOMINO'S"
+
+    x = re.search(".*SUBWAY.*", txt)
+    if x:
+        return "SUBWAY"
+
+    return None
+
 
 if __name__ == '__main__':
     print('go go go!')
     # data = pd.read_csv('./data/USDA_Food_Database.csv')
-    columns = ['Energy_(kcal)', 'Protein_(g)', 'Carbohydrt_(g)', 'Water_(g)', 'FA_Sat_(g)', 'Zinc_(mg)',
-               'Sugar_Tot_(g)','Iron_(mg)', 'Phosphorus_(mg)']
+    columns = ['Protein_(g)', 'Energy_(kcal)', 'Zinc_(mg)', 'Phosphorus_(mg)', 'Sugar_Tot_(g)', 'Iron_(mg)',
+               'Carbohydrt_(g)', 'Water_(g)', 'FA_Sat_(g)', ]
     # columns = ['Energy_(kcal)', 'Protein_(g)', 'Carbohydrt_(g)', 'Water_(g)', 'FA_Sat_(g)', 'Zinc_(mg)']
-    #columns = ['Riboflavin_(mg)', 'Energy_(kcal)']
-    #columns = ['Folic_Acid_(µg)','Folate_DFE_(µg)']
+    # columns = ['Riboflavin_(mg)', 'Energy_(kcal)']
+    # columns = ['Folic_Acid_(µg)','Folate_DFE_(µg)']
 
     # columns = ['Energy_(kcal)', 'Carbohydrt_(g)']
     # columns = ['Energy_(kcal)', 'Water_(g)']
@@ -75,13 +108,12 @@ if __name__ == '__main__':
         "FRUITS": 5,
     }
 
-    whitelist = ['VEGETABLES', 'FRUITS', 'MILK', 'CHEESE', 'BEEF', 'CHICKEN',
-                 'PORK', 'VEAL', 'MEAT', 'GOOSE', 'LAMB', 'FISH', 'SEAFOOD', 'PROCESSED FOOD']
+    whitelist = ['PROCESSED FOOD', 'VEGETABLES']
 
     reader = core.Data()
     # data = reader.read_data('./data/USDA_Food_Database.csv', columns, merged_groups, generate_label=True)
-    data, t,read_columns = reader.read_data('./data/USDA_Food_Database.csv', columns=columns, groups=None,
-                               generate_label=False, group_whitelist=None)
+    data, t, read_columns = reader.read_data('./data/USDA_Food_Database.csv', columns=columns, groups=None,
+                                             generate_label=False, group_whitelist=None, filter_func=None)
 
     scaler = MinMaxScaler()
     data = scaler.fit_transform(data)
@@ -90,7 +122,7 @@ if __name__ == '__main__':
     for l in range(0, len(read_columns)):
         dict[read_columns[l]] = data[:, l]
     dict["Category"] = t
-    frame = pd.DataFrame( dict)
+    frame = pd.DataFrame(dict)
 
     #     {
     #      columns[0]: data[:, 0], # energy
@@ -104,10 +136,9 @@ if __name__ == '__main__':
     #      columns[1]: data[:, 1], # protein
     #      "Category": t})
 
-
-    pd.plotting.parallel_coordinates(frame, "Category", colormap=cm.get_cmap('tab20'))
-    #pd.plotting.parallel_coordinates(frame, "Category", colormap=None)
+    pd.plotting.parallel_coordinates(frame, "Category", colormap=cm.get_cmap('tab20'), axvlines=False, sort_labels=True)
+    # pd.plotting.parallel_coordinates(frame, "Category", colormap=None)
     plt.gca().legend_.remove()
+    plt.xticks(rotation=90)
+
     plt.show()
-
-

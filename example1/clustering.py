@@ -75,7 +75,7 @@ if __name__ == '__main__':
     reader = core.Data()
     # data = reader.read_data('./data/USDA_Food_Database.csv', columns, merged_groups, generate_label=True)
     data, t, read_columns = reader.read_data('./data/USDA_Food_Database.csv', columns=columns, groups=None,
-                               generate_label=True, group_whitelist=None)
+                               generate_label=False, group_whitelist=None)
 
     #data = scale(data)
     print(t)

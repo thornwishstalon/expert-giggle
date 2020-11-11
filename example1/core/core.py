@@ -37,7 +37,8 @@ class Data:
         else:
             return key
 
-    def read_data(self, filepath, columns=None, groups=None, generate_label=False, group_whitelist=None):
+    def read_data(self, filepath, columns=None, groups=None, generate_label=False, group_whitelist=None,
+                  filter_func=None):
         """read the data file"""
         if groups is not None:
             self.label_counter = len(groups)
@@ -49,7 +50,7 @@ class Data:
             return
 
         print("reading file ... ")
-        with open(filepath, newline='',encoding='utf-8-sig') as csvfile:
+        with open(filepath, newline='', encoding='utf-8-sig') as csvfile:
             reader = csv.DictReader(csvfile)
 
             if columns is not None:
@@ -89,6 +90,11 @@ class Data:
                 if group_whitelist and not row['Keyword'] in group_whitelist:
                     # skip entry
                     continue
+
+                if filter_func:
+                    label = filter_func(row)
+                    if label is None:
+                        continue
 
                 self.t.append(label)
                 self.data.append(data_item)

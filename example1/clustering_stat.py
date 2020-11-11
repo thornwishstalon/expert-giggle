@@ -125,7 +125,7 @@ if __name__ == '__main__':
     #                        generate_label=True, group_whitelist=whitelist)
 
     data, t, read_columns = reader.read_data('./data/USDA_Food_Database.csv', columns=None, groups=None,
-                               generate_label=True, group_whitelist=whitelist)
+                               generate_label=False, group_whitelist=None)
     data = scale(data)
     print('generating plots...')
 
@@ -135,7 +135,8 @@ if __name__ == '__main__':
     # benchmark = True
 
     n_samples, n_features = data.shape
-    n_groups = len(np.unique(t))
+    #n_groups = len(np.unique(t))
+    n_groups = 25
     # n_groups = 5
 
     labels = t
