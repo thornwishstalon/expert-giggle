@@ -22,6 +22,8 @@
 # Which Python functionality did you use for the statistical analysis and which visualization type did you employ?
 # Which aspects of the task (e.g., identifying the number of clusters) where easier to solve by using statistical analysis, and which by using visualization?
 ######
+from kneed import KneeLocator
+from sklearn.impute import SimpleImputer
 
 from example1.core import core
 import numpy as np
@@ -29,7 +31,6 @@ from time import time
 from sklearn import metrics
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
-from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import scale
 
 import matplotlib.pyplot as plt
@@ -37,30 +38,15 @@ import pandas as pd
 
 sample_size = 2000
 
-
-def bench_k_means(estimator, name, data):
-    t0 = time()
-    estimator.fit(data)
-    print('%-9s\t%.2fs\t%i\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f'
-          % (name, (time() - t0), estimator.inertia_,
-             metrics.homogeneity_score(labels, estimator.labels_),
-             metrics.completeness_score(labels, estimator.labels_),
-             metrics.v_measure_score(labels, estimator.labels_),
-             metrics.adjusted_rand_score(labels, estimator.labels_),
-             metrics.adjusted_mutual_info_score(labels, estimator.labels_),
-             metrics.silhouette_score(data, estimator.labels_,
-                                      metric='euclidean',
-                                      sample_size=sample_size)))
-
-
 if __name__ == '__main__':
     print('go go go!')
     # data = pd.read_csv('./data/USDA_Food_Database.csv')
     columns = ['Protein_(g)', 'Carbohydrt_(g)', 'FA_Sat_(g)', 'Zinc_(mg)',
                'Iron_(mg)', 'FA_Sat_(g)', 'Zinc_(mg)', 'Water_(g)', 'Iron_(mg)', 'Phosphorus_(mg)', 'Sugar_Tot_(g)']
     # columns = ['Energy_(kcal)', 'Protein_(g)', 'Carbohydrt_(g)', 'Water_(g)', 'FA_Sat_(g)', 'Zinc_(mg)']
+    # columns = [ 'Water_(g)', 'FA_Sat_(g)', 'Zinc_(mg)','Sugar_Tot_(g)']
+    #columns = ['Energy_(kcal)', 'Protein_(g)']
     columns = ['Water_(g)', 'Protein_(g)']
-
     # columns = ['Energy_(kcal)', 'Carbohydrt_(g)']
     # columns = ['Energy_(kcal)', 'Water_(g)']
     # columns = ['Energy_(kcal)', 'FA_Sat_(g)']
@@ -126,8 +112,7 @@ if __name__ == '__main__':
     #                        generate_label=True, group_whitelist=whitelist)
 
     data, t, read_columns = reader.read_data('./data/USDA_Food_Database.csv', columns=columns, groups=None,
-                               generate_label=False, group_whitelist=None)
-
+                                             generate_label=False, group_whitelist=None)
     imp_mean = SimpleImputer(missing_values=np.nan, strategy='mean')
     imp_mean.fit(data)
 
@@ -141,31 +126,12 @@ if __name__ == '__main__':
     # benchmark = True
 
     n_samples, n_features = data.shape
-    #n_groups = len(np.unique(t))
-    n_groups = 7
+    # n_groups = len(np.unique(t))
+    n_groups = 25
     # n_groups = 5
 
-    labels = t
     print("n_groups: %d, \t n_samples %d, \t n_features %d"
           % (n_groups, n_samples, n_features))
-
-    if benchmark:
-        print(82 * '_')
-        print('init\t\ttime\tinertia\thomo\tcompl\tv-meas\tARI\tAMI\tsilhouette')
-
-        bench_k_means(KMeans(init='k-means++', n_clusters=n_groups, n_init=10),
-                      name="k-means++", data=data)
-
-        bench_k_means(KMeans(init='random', n_clusters=n_groups, n_init=10),
-                      name="random", data=data)
-
-        # in this case the seeding of the centers is deterministic, hence we run the
-        # kmeans algorithm only once with n_init=1
-        pca = PCA(n_components=n_groups).fit(data)
-        bench_k_means(KMeans(init=pca.components_, n_clusters=n_groups, n_init=1),
-                      name="PCA-based",
-                      data=data)
-        print(82 * '_')
 
     reduced_components = 2
     pca = PCA(n_components=reduced_components)
@@ -178,52 +144,28 @@ if __name__ == '__main__':
     most_important_names = [initial_feature_names[most_important[i]] for i in range(reduced_components)]
     print(most_important_names)
 
-    kmeans = KMeans(init='k-means++', n_clusters=n_groups, n_init=10)
-    kmeans.fit(reduced_data)
+    kmeans_kwargs = {
+        "n_init": 10,
+        "max_iter": 1000,
+        "random_state": 42,
+        "init": 'k-means++'
+    }
+    sse = []
+    k_range = range(2, 36)
+    for k in k_range:
+        kmeans = KMeans(n_clusters=k, **kmeans_kwargs)
+        kmeans.fit(reduced_data)
+        sse.append(kmeans.inertia_)
 
-    # Step size of the mesh. Decrease to increase the quality of the VQ.
-    h = .1  # point in the mesh [x_min, x_max]x[y_min, y_max].
+    kneedle = KneeLocator(
+        k_range, sse, curve="convex", direction="decreasing"
+    )
+    kneedle.plot_knee()
 
-    # Plot the decision boundary. For that, we will assign a color to each
-    x_min, x_max = reduced_data[:, 0].min() - 1, reduced_data[:, 0].max() + 1
-    y_min, y_max = reduced_data[:, 1].min() - 1, reduced_data[:, 1].max() + 1
-    xx, yy = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))
 
-    # Obtain labels for each point in mesh. Use last trained model.
-    Z = kmeans.predict(np.c_[xx.ravel(), yy.ravel()])
-
-    # Put the result into a color plot
-    Z = Z.reshape(xx.shape)
-    plt.figure(1)
-    plt.clf()
-    plt.imshow(Z, interpolation='nearest',
-               extent=(xx.min(), xx.max(), yy.min(), yy.max()),
-               cmap=plt.cm.Paired,
-               aspect='auto', origin='lower',
-               alpha=0.3
-               )
-
-    frame = pd.DataFrame(
-        {"X Value": reduced_data[:, 0], "Y Value": reduced_data[:, 1], "Category": t})
-
-    groups = frame.groupby("Category")
-    for name, group in groups:
-        plt.scatter(group["X Value"], group["Y Value"], marker="o", label=name, alpha=0.2, zorder=-5)
-
-    plt.legend()
-    # plt.plot(reduced_data[:, 0], reduced_data[:, 1], 'k.', markersize=2)
-    # Plot the centroids as a white X
-    centroids = kmeans.cluster_centers_
-    plt.scatter(centroids[:, 0], centroids[:, 1],
-                marker='x', s=80, linewidths=1,
-                color='b', zorder=10, alpha=0.7)
-
-    plt.title('K-means clustering on the scaled and reduced dataset (PCA)\n')
-    plt.xlim(x_min, x_max)
-    plt.ylim(y_min, y_max)
-    plt.xlabel(most_important_names[0])
-    plt.ylabel(most_important_names[1])
-    plt.xticks(())
-    plt.yticks(())
-
+    plt.style.use("fivethirtyeight")
+    plt.plot(k_range, sse)
+    plt.xticks(k_range)
+    plt.xlabel("Number of Clusters")
+    plt.ylabel("SSE")
     plt.show()

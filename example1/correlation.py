@@ -28,7 +28,7 @@ from example1.core import core
 import matplotlib.pyplot as plt
 import pandas as pd
 import re
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler, scale
 from matplotlib import cm
 
 
@@ -118,6 +118,8 @@ if __name__ == '__main__':
     scaler = MinMaxScaler()
     data = scaler.fit_transform(data)
 
+    #data = scale(data)
+
     dict = {}
     for l in range(0, len(read_columns)):
         dict[read_columns[l]] = data[:, l]
@@ -136,9 +138,29 @@ if __name__ == '__main__':
     #      columns[1]: data[:, 1], # protein
     #      "Category": t})
 
+    plt.figure()
     pd.plotting.parallel_coordinates(frame, "Category", colormap=cm.get_cmap('tab20'), axvlines=False, sort_labels=True)
     # pd.plotting.parallel_coordinates(frame, "Category", colormap=None)
     plt.gca().legend_.remove()
     plt.xticks(rotation=90)
+
+    frame = frame[['Category','Carbohydrt_(g)','Protein_(g)','Water_(g)', 'Energy_(kcal)', 'Sugar_Tot_(g)',  'Phosphorus_(mg)', 'Iron_(mg)',
+                 'Zinc_(mg)','FA_Sat_(g)']]
+
+    plt.figure()
+    pd.plotting.parallel_coordinates(frame, "Category", colormap=cm.get_cmap('tab20'), axvlines=False, sort_labels=True)
+    # pd.plotting.parallel_coordinates(frame, "Category", colormap=None)
+    plt.gca().legend_.remove()
+    plt.xticks(rotation=90)
+
+    frame = frame[['Category','Water_(g)', 'Energy_(kcal)', 'Carbohydrt_(g)',  'Phosphorus_(mg)', 'Iron_(mg)',
+                 'Zinc_(mg)','Protein_(g)','Sugar_Tot_(g)','FA_Sat_(g)']]
+
+    plt.figure()
+    pd.plotting.parallel_coordinates(frame, "Category", colormap=cm.get_cmap('tab20'), axvlines=False, sort_labels=True)
+    # pd.plotting.parallel_coordinates(frame, "Category", colormap=None)
+    plt.gca().legend_.remove()
+    plt.xticks(rotation=90)
+
 
     plt.show()

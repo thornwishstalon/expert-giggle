@@ -2,6 +2,7 @@ import csv
 from typing import Dict, Any
 
 import numpy as np
+import pandas
 from pathlib import Path
 
 
@@ -36,6 +37,11 @@ class Data:
                 return self.labels[key]
         else:
             return key
+
+
+    def read_data_v2(self, filepath, columns):
+        return pandas.read_csv( filepath, names=columns)
+
 
     def read_data(self, filepath, columns=None, groups=None, generate_label=False, group_whitelist=None,
                   filter_func=None):
@@ -83,7 +89,7 @@ class Data:
                                 except ValueError:
                                     pass
                             else:
-                                data_item.append(-1.0)
+                                data_item.append(np.nan)
                 store_columns = False
                 label = self.get_label(self.get_label(row['Keyword'], generate_label))
 

@@ -32,13 +32,13 @@ from sklearn.preprocessing import scale
 if __name__ == '__main__':
     print('go go go!')
     # data = pd.read_csv('./data/USDA_Food_Database.csv')
-    #columns = ['Energy_(kcal)', 'Protein_(g)', 'Carbohydrt_(g)', 'Water_(g)', 'FA_Sat_(g)', 'Zinc_(mg)',
-    #           'Sugar_Tot_(g)','Iron_(mg)', 'Phosphorus_(mg)']
+    columns = ['Keyword','Energy_(kcal)', 'Protein_(g)', 'Carbohydrt_(g)', 'Water_(g)', 'FA_Sat_(g)', 'Zinc_(mg)',
+               'Sugar_Tot_(g)', 'Iron_(mg)', 'Phosphorus_(mg)']
     # columns = ['Energy_(kcal)', 'Protein_(g)', 'Carbohydrt_(g)', 'Water_(g)', 'FA_Sat_(g)', 'Zinc_(mg)']
-    #columns = ['Riboflavin_(mg)', 'Energy_(kcal)']
+    # columns = ['Riboflavin_(mg)', 'Energy_(kcal)']
 
     # columns = ['Energy_(kcal)', 'Carbohydrt_(g)']
-    columns = ['Protein_(g)', 'Water_(g)']
+    # columns = ['Energy_(kcal)', 'Water_(g)']
     # columns = ['Energy_(kcal)', 'FA_Sat_(g)']
     labels = {
         1: "milk products",
@@ -74,23 +74,24 @@ if __name__ == '__main__':
 
     reader = core.Data()
     # data = reader.read_data('./data/USDA_Food_Database.csv', columns, merged_groups, generate_label=True)
-    data, t, read_columns = reader.read_data('./data/USDA_Food_Database.csv', columns=None, groups=None,
-                               generate_label=False, group_whitelist=None)
+    dataFrame = reader.read_data_v2('./data/USDA_Food_Database.csv', columns=columns)
 
-    data = scale(data)
-    print(t)
+    # data = scale(data)
     print('generating plots...')
+    print(dataFrame[['Keyword']])
 
-    for k in range(0, len(columns)):
-        for l in range(0, len(columns)):
+    for k in range(1, len(columns)):
+        for l in range(1, len(columns)):
 
             if k < l and not k == l:
                 frame = pd.DataFrame(
-                    {"X Value": data[:, k], "Y Value": data[:, l], "Category": t})
+                    {"X Value": dataFrame[[columns[k]]], "Y Value": dataFrame[[columns[l]]],
+                     "Category": dataFrame[['Keyword']]})
 
                 plt.figure()
                 groups = frame.groupby("Category")
                 for name, group in groups:
+                    print(name)
                     plt.scatter(group["X Value"], group["Y Value"], marker="o", label=name, alpha=0.2)
 
                 plt.title("{0} v.s. {1}".format(columns[k], columns[l]))

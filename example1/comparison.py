@@ -52,15 +52,12 @@ def filterfunc(data_array):
     x = re.search(".*TACO BELL.*", txt)
     if x:
         return "TACO BELL"
-
     x = re.search(".*PIZZA HUT.*", txt)
     if x:
         return "PIZZA HUT"
-
     x = re.search(".*DOMINO'S.*", txt)
     if x:
         return "DOMINO'S"
-
     x = re.search(".*SUBWAY.*", txt)
     if x:
         return "SUBWAY"
@@ -145,8 +142,8 @@ if __name__ == '__main__':
             angles = [n / float(N) * 2 * pi for n in range(N)]
             angles += angles[:1]  # repeat first angle to close poly
             # plot
-            plt.polar(angles, values, marker='.', alpha=0.2, color='black')  # lines
-            # plt.fill(angles, values, alpha=0.3)  # area
+            plt.polar(angles, values, marker='.', alpha=0.1, color='red')  # lines
+            #plt.fill(angles, values, alpha=0.1)  # area
 
             # xticks
             plt.xticks(angles, read_columns)
