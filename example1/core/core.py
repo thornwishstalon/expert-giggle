@@ -74,7 +74,7 @@ class Data:
                         if is_not_blank(value):
                             data_item.append(float(value))
                         else:
-                            data_item.append(float(-1.0))
+                            data_item.append(np.nan)
                 else:
                     for key, value in row.items():
 

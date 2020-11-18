@@ -41,14 +41,16 @@ sample_size = 2000
 if __name__ == '__main__':
     print('go go go!')
     # data = pd.read_csv('./data/USDA_Food_Database.csv')
-    columns = ['Protein_(g)', 'Carbohydrt_(g)', 'FA_Sat_(g)', 'Zinc_(mg)',
-               'Iron_(mg)', 'FA_Sat_(g)', 'Zinc_(mg)', 'Water_(g)', 'Iron_(mg)', 'Phosphorus_(mg)', 'Sugar_Tot_(g)']
+    #columns = ['Protein_(g)', 'Carbohydrt_(g)', 'FA_Sat_(g)', 'Zinc_(mg)',
+    #           'Iron_(mg)', 'FA_Sat_(g)', 'Zinc_(mg)', 'Water_(g)', 'Iron_(mg)', 'Phosphorus_(mg)', 'Sugar_Tot_(g)']
     # columns = ['Energy_(kcal)', 'Protein_(g)', 'Carbohydrt_(g)', 'Water_(g)', 'FA_Sat_(g)', 'Zinc_(mg)']
     # columns = [ 'Water_(g)', 'FA_Sat_(g)', 'Zinc_(mg)','Sugar_Tot_(g)']
     #columns = ['Energy_(kcal)', 'Protein_(g)']
-    columns = ['Water_(g)', 'Protein_(g)']
+    #columns = ['Water_(g)', 'Protein_(g)']
+
+    #columns = ['Folate_Tot_(µg)','Lipid_Tot_(g)']
     # columns = ['Energy_(kcal)', 'Carbohydrt_(g)']
-    # columns = ['Energy_(kcal)', 'Water_(g)']
+    columns = ['Energy_(kcal)', 'Water_(g)']
     # columns = ['Energy_(kcal)', 'FA_Sat_(g)']
     labels = {
         1: "milk products",
@@ -160,12 +162,13 @@ if __name__ == '__main__':
     kneedle = KneeLocator(
         k_range, sse, curve="convex", direction="decreasing"
     )
-    kneedle.plot_knee()
 
+    kneedle.plot_knee()
 
     plt.style.use("fivethirtyeight")
     plt.plot(k_range, sse)
     plt.xticks(k_range)
     plt.xlabel("Number of Clusters")
     plt.ylabel("SSE")
+
     plt.show()

@@ -113,6 +113,7 @@ if __name__ == '__main__':
     # whitelist = ['FISH', 'SEAFOOD', 'CHICKEN', 'TURKEY']
     # whitelist = ['ANIMAL FAT','VEGETABLE FAT']
     whitelist = ['PROCESSED FOOD']
+    #whitelist = ['BEEF', 'PORK', 'VEAL', 'VENISON']
 
     reader = core.Data()
     data, t, read_columns = reader.read_data('./data/USDA_Food_Database.csv', columns=None, groups=None,
@@ -134,6 +135,7 @@ if __name__ == '__main__':
 
     row = -1
     i = 0
+    sizes = {}
     for k in range(0, len(read_columns)):
         frame = pd.DataFrame({"Value": data[:, k], "Category": t})
 
@@ -146,6 +148,8 @@ if __name__ == '__main__':
         for name, group in groups:
             labels.append(name)
             group_data.append((group['Value']))
+            if  name not in sizes:
+                sizes[name] = len(group)
 
         ax[row][i % max_cols].set_title(read_columns[k])
         ax[row][i % max_cols].boxplot(group_data)
@@ -159,7 +163,7 @@ if __name__ == '__main__':
     index = 0
     for label in labels:
         index += 1
-        title += "({}) {} ".format( index, label)
+        title += "({}) {} (n={}) ".format( index, label, sizes[label])
 
     fig.suptitle(title, fontsize=12)
     # plt.xticks([0, 1, 2], labels)

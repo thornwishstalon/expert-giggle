@@ -27,12 +27,23 @@ from example1.core import core
 
 import matplotlib.pyplot as plt
 import pandas as pd
-from sklearn.preprocessing import scale
-from sklearn.preprocessing import normalize
-from sklearn.preprocessing import MinMaxScaler
-from matplotlib import cm
 import numpy as np
 import seaborn as sn
+
+def get_redundant_pairs(df):
+    '''Get diagonal and lower triangular pairs of correlation matrix'''
+    pairs_to_drop = set()
+    cols = df.columns
+    for i in range(0, df.shape[1]):
+        for j in range(0, i+1):
+            pairs_to_drop.add((cols[i], cols[j]))
+    return pairs_to_drop
+
+def get_top_abs_correlations(df, n=5, ascending=False):
+    au_corr = df.corr().unstack()
+    labels_to_drop = get_redundant_pairs(df)
+    au_corr = au_corr.drop(labels=labels_to_drop).sort_values(ascending=ascending)
+    return au_corr[0:n]
 
 if __name__ == '__main__':
     print('go go go!')
@@ -100,10 +111,14 @@ if __name__ == '__main__':
     dict = {}
     for l in range(0, len(read_columns)):
         dict[read_columns[l]] = data[:, l]
-    dict["Category"] = t
+    #dict["Category"] = t
 
     frame = pd.DataFrame(dict)
 
+    print("Top positive Correlations")
+    print(get_top_abs_correlations(frame, 5, ascending=False))
+    print("Top negative Correlations")
+    print(get_top_abs_correlations(frame, 5, ascending=True))
     # frame = pd.DataFrame(
     #     {
     #         columns[0]: data[:, 0],  # energy
@@ -118,6 +133,8 @@ if __name__ == '__main__':
     #         "Category": t})
 
     corrMatrix = frame.corr()
+
+
     print(corrMatrix)
     sn.heatmap(corrMatrix, annot=True, linewidth=.5)
     plt.show()

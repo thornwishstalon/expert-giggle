@@ -68,8 +68,7 @@ def filterfunc(data_array):
 if __name__ == '__main__':
     print('go go go!')
     # data = pd.read_csv('./data/USDA_Food_Database.csv')
-    columns = ['Protein_(g)', 'Energy_(kcal)', 'Zinc_(mg)', 'Phosphorus_(mg)', 'Sugar_Tot_(g)', 'Iron_(mg)',
-               'Carbohydrt_(g)', 'Water_(g)', 'FA_Sat_(g)', ]
+    columns = ['Folate_Tot_(µg)', 'Carbohydrt_(g)', 'Folate_DFE_(µg)', 'Folic_Acid_(µg)', 'Water_(g)','Zinc_(mg)']
     # columns = ['Energy_(kcal)', 'Protein_(g)', 'Carbohydrt_(g)', 'Water_(g)', 'FA_Sat_(g)', 'Zinc_(mg)']
     # columns = ['Riboflavin_(mg)', 'Energy_(kcal)']
     # columns = ['Folic_Acid_(µg)','Folate_DFE_(µg)']
@@ -143,24 +142,5 @@ if __name__ == '__main__':
     # pd.plotting.parallel_coordinates(frame, "Category", colormap=None)
     plt.gca().legend_.remove()
     plt.xticks(rotation=90)
-
-    frame = frame[['Category','Carbohydrt_(g)','Protein_(g)','Water_(g)', 'Energy_(kcal)', 'Sugar_Tot_(g)',  'Phosphorus_(mg)', 'Iron_(mg)',
-                 'Zinc_(mg)','FA_Sat_(g)']]
-
-    plt.figure()
-    pd.plotting.parallel_coordinates(frame, "Category", colormap=cm.get_cmap('tab20'), axvlines=False, sort_labels=True)
-    # pd.plotting.parallel_coordinates(frame, "Category", colormap=None)
-    plt.gca().legend_.remove()
-    plt.xticks(rotation=90)
-
-    frame = frame[['Category','Water_(g)', 'Energy_(kcal)', 'Carbohydrt_(g)',  'Phosphorus_(mg)', 'Iron_(mg)',
-                 'Zinc_(mg)','Protein_(g)','Sugar_Tot_(g)','FA_Sat_(g)']]
-
-    plt.figure()
-    pd.plotting.parallel_coordinates(frame, "Category", colormap=cm.get_cmap('tab20'), axvlines=False, sort_labels=True)
-    # pd.plotting.parallel_coordinates(frame, "Category", colormap=None)
-    plt.gca().legend_.remove()
-    plt.xticks(rotation=90)
-
 
     plt.show()

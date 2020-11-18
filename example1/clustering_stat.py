@@ -56,13 +56,14 @@ def bench_k_means(estimator, name, data):
 if __name__ == '__main__':
     print('go go go!')
     # data = pd.read_csv('./data/USDA_Food_Database.csv')
-    columns = ['Protein_(g)', 'Carbohydrt_(g)', 'FA_Sat_(g)', 'Zinc_(mg)',
-               'Iron_(mg)', 'FA_Sat_(g)', 'Zinc_(mg)', 'Water_(g)', 'Iron_(mg)', 'Phosphorus_(mg)', 'Sugar_Tot_(g)']
+    #columns = ['Protein_(g)', 'Carbohydrt_(g)', 'FA_Sat_(g)', 'Zinc_(mg)',
+    #           'Iron_(mg)', 'FA_Sat_(g)', 'Zinc_(mg)', 'Water_(g)', 'Iron_(mg)', 'Phosphorus_(mg)', 'Sugar_Tot_(g)']
     # columns = ['Energy_(kcal)', 'Protein_(g)', 'Carbohydrt_(g)', 'Water_(g)', 'FA_Sat_(g)', 'Zinc_(mg)']
-    columns = ['Water_(g)', 'Protein_(g)']
+    #columns = ['Water_(g)', 'Protein_(g)']
+    #columns = ['Energy_(kcal)','Water_(g)']
 
     # columns = ['Energy_(kcal)', 'Carbohydrt_(g)']
-    # columns = ['Energy_(kcal)', 'Water_(g)']
+    columns = ['Energy_(kcal)', 'Water_(g)']
     # columns = ['Energy_(kcal)', 'FA_Sat_(g)']
     labels = {
         1: "milk products",
@@ -126,7 +127,7 @@ if __name__ == '__main__':
     #                        generate_label=True, group_whitelist=whitelist)
 
     data, t, read_columns = reader.read_data('./data/USDA_Food_Database.csv', columns=columns, groups=None,
-                               generate_label=False, group_whitelist=None)
+                                             generate_label=False, group_whitelist=None)
 
     imp_mean = SimpleImputer(missing_values=np.nan, strategy='mean')
     imp_mean.fit(data)
@@ -141,7 +142,7 @@ if __name__ == '__main__':
     # benchmark = True
 
     n_samples, n_features = data.shape
-    #n_groups = len(np.unique(t))
+    # n_groups = len(np.unique(t))
     n_groups = 7
     # n_groups = 5
 
@@ -178,11 +179,12 @@ if __name__ == '__main__':
     most_important_names = [initial_feature_names[most_important[i]] for i in range(reduced_components)]
     print(most_important_names)
 
+    reduced_data = data
     kmeans = KMeans(init='k-means++', n_clusters=n_groups, n_init=10)
     kmeans.fit(reduced_data)
 
     # Step size of the mesh. Decrease to increase the quality of the VQ.
-    h = .1  # point in the mesh [x_min, x_max]x[y_min, y_max].
+    h = .05  # point in the mesh [x_min, x_max]x[y_min, y_max].
 
     # Plot the decision boundary. For that, we will assign a color to each
     x_min, x_max = reduced_data[:, 0].min() - 1, reduced_data[:, 0].max() + 1
@@ -200,7 +202,7 @@ if __name__ == '__main__':
                extent=(xx.min(), xx.max(), yy.min(), yy.max()),
                cmap=plt.cm.Paired,
                aspect='auto', origin='lower',
-               alpha=0.3
+               alpha=0.5
                )
 
     frame = pd.DataFrame(
@@ -215,10 +217,13 @@ if __name__ == '__main__':
     # Plot the centroids as a white X
     centroids = kmeans.cluster_centers_
     plt.scatter(centroids[:, 0], centroids[:, 1],
-                marker='x', s=80, linewidths=1,
-                color='b', zorder=10, alpha=0.7)
+                marker='o', s=100, linewidths=1,
+                color='r', zorder=10, alpha=1)
+    plt.scatter(centroids[:, 0], centroids[:, 1],
+                marker='x', s=80, linewidths=2,
+                color='black', zorder=10, alpha=1)
 
-    plt.title('K-means clustering on the scaled and reduced dataset (PCA)\n')
+    #plt.title('K-means clustering on the scaled and reduced dataset (PCA)\n')
     plt.xlim(x_min, x_max)
     plt.ylim(y_min, y_max)
     plt.xlabel(most_important_names[0])

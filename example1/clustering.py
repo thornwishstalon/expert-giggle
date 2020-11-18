@@ -22,24 +22,30 @@
 # Which Python functionality did you use for the statistical analysis and which visualization type did you employ?
 # Which aspects of the task (e.g., identifying the number of clusters) where easier to solve by using statistical analysis, and which by using visualization?
 ######
+from matplotlib import cm
+from sklearn.impute import SimpleImputer
 
 from example1.core import core
 
 import matplotlib.pyplot as plt
 import pandas as pd
+import numpy as np
 from sklearn.preprocessing import scale
 
 if __name__ == '__main__':
     print('go go go!')
     # data = pd.read_csv('./data/USDA_Food_Database.csv')
-    #columns = ['Energy_(kcal)', 'Protein_(g)', 'Carbohydrt_(g)', 'Water_(g)', 'FA_Sat_(g)', 'Zinc_(mg)',
-    #           'Sugar_Tot_(g)','Iron_(mg)', 'Phosphorus_(mg)']
+    columns = ['Energy_(kcal)', 'Water_(g)']
+    #columns = ['Energy_(kcal)', 'Protein_(g)', 'Carbohydrt_(g)', 'FA_Sat_(g)','Water_(g)']
+    #columns = ['Water_(g)', 'Zinc_(mg)' , 'Iron_(mg)','Phosphorus_(mg)','Sugar_Tot_(g)']
+                # , 'Zinc_(mg)',
+    #           ,'Iron_(mg)', 'Phosphorus_(mg)']
     # columns = ['Energy_(kcal)', 'Protein_(g)', 'Carbohydrt_(g)', 'Water_(g)', 'FA_Sat_(g)', 'Zinc_(mg)']
     #columns = ['Riboflavin_(mg)', 'Energy_(kcal)']
 
     # columns = ['Energy_(kcal)', 'Carbohydrt_(g)']
-    columns = ['Protein_(g)', 'Water_(g)']
-    # columns = ['Energy_(kcal)', 'FA_Sat_(g)']
+    #columns = ['Protein_(g)', 'Water_(g)']
+    #columns = [ 'Energy_(kcal)', 'Carbohydrt_(g)', '']
     labels = {
         1: "milk products",
         2: "meats",
@@ -74,10 +80,13 @@ if __name__ == '__main__':
 
     reader = core.Data()
     # data = reader.read_data('./data/USDA_Food_Database.csv', columns, merged_groups, generate_label=True)
-    data, t, read_columns = reader.read_data('./data/USDA_Food_Database.csv', columns=None, groups=None,
+    data, t, read_columns = reader.read_data('./data/USDA_Food_Database.csv', columns=columns, groups=None,
                                generate_label=False, group_whitelist=None)
 
-    data = scale(data)
+    imp_mean = SimpleImputer(missing_values=np.nan, strategy='mean')
+    imp_mean.fit(data)
+
+    data = imp_mean.transform(data)
     print(t)
     print('generating plots...')
 
@@ -91,7 +100,7 @@ if __name__ == '__main__':
                 plt.figure()
                 groups = frame.groupby("Category")
                 for name, group in groups:
-                    plt.scatter(group["X Value"], group["Y Value"], marker="o", label=name, alpha=0.2)
+                    plt.scatter(group["X Value"], group["Y Value"], marker="o", label=name, alpha=0.2, cmap=cm.get_cmap('tab20'))
 
                 plt.title("{0} v.s. {1}".format(columns[k], columns[l]))
                 plt.legend()

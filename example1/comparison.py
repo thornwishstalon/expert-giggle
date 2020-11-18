@@ -125,13 +125,16 @@ if __name__ == '__main__':
 
     N = len(read_columns) - 1
     group_id = 0
+    fig = plt.figure()
+    ax = plt.subplot(polar=True)
+    color = ['black', 'red', 'blue', 'green', 'blue', 'cyan', 'magenta' ]
+    title = ""
     for name, group in groups:
         # values
-        fig = plt.figure()
-        ax = plt.subplot(polar=True)
+
         values_data = group.to_numpy()[:, 0:-1]
         c_data = len(values_data)
-        plt.title(name + " (n={})".format(c_data))
+        title += name + " ({}) ".format(color[group_id])
         for i in range(c_data):
             # print(values)
             values = values_data[i, :]
@@ -142,7 +145,7 @@ if __name__ == '__main__':
             angles = [n / float(N) * 2 * pi for n in range(N)]
             angles += angles[:1]  # repeat first angle to close poly
             # plot
-            plt.polar(angles, values, marker='.', alpha=0.1, color='red')  # lines
+            plt.polar(angles, values, marker='.', alpha=0.2, color=color[group_id])  # lines
             #plt.fill(angles, values, alpha=0.1)  # area
 
             # xticks
@@ -151,5 +154,6 @@ if __name__ == '__main__':
             ax.set_rlabel_position(0)  # yticks position
             plt.yticks([-2, 0, 2, 4, 6, 8, 10], color="grey", size=6)
             # plt.ylim(0, 30)
-
+        group_id +=1
+    plt.title(title)
     plt.show()
