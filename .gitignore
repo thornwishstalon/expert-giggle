@@ -1,1 +1,11 @@
 /example2/switrs.sqlite
+/example2/database.db
+/example2/.mapbox_token
+!/example2/input/.gitkeep
+/example2/input/
+!/example2/input_dash/.gitkeep
+/example2/input_dash
+
+
+/example1/report_1
+.idea
