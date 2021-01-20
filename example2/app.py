@@ -74,8 +74,13 @@ def load_data(options):
                                      'pcf_violation_code': 'str',
                                      'pcf_violation_category': 'str',
                                      'latitude': 'float',
-                                     'longitude': 'float'
+                                     'longitude': 'float',
+                                     'state_route': 'str',  # ?
+                                     'caltrans_district': 'str',  # ?
+                                     'route_suffix': 'str',  # ?
                                  })
+
+        # print(collisions.columns[24])
         collisions.dropna(subset=['collision_date', 'collision_time'], inplace=True)
         collisions['killed_victims'] = collisions['killed_victims'].fillna(0)
         collisions['killed_victims'] = collisions['killed_victims'].fillna(0)
@@ -263,12 +268,20 @@ app.layout = html.Div(children=[
         ),
 
     ], style={'columnCount': 1, "margin": "20px"}),
-
-    html.Div([
-        dcc.Graph(
-            id='map'
-        )
-    ], style={"margin-left": "20px"}),
+    html.Div(
+        [
+            dcc.Loading(
+                id="loading",
+                children=[html.Div([
+                    dcc.Graph(
+                        id='map'
+                    )
+                ], style={"margin-left": "20px"})],
+                type="circle",
+                fullscreen=True,
+            )
+        ]
+    ),
     html.Div([
         dcc.Graph(
             id='categories_pie'
@@ -326,8 +339,18 @@ def update_figure(year_value, hour_value, checkboxes, categories):
             )
     data = data.sort_values(['count'], ascending=False)
 
+    hist_data = (map_data.groupby(
+        ['pcf_violation_category', 'hour'])
+                 .agg(count=('pcf_violation_category', 'count'),
+                      bicycle_deaths=('bicyclist_killed_count', 'sum'),
+                      bicycle_injured=('bicyclist_injured_count', 'sum')
+                      )
+                 .reset_index()
+                 )
+    hist_data = hist_data.sort_values(['count'], ascending=False)
+
     return [fig, get_total_pie_chart(data), get_total_injured_pie_chart(data), get_total_kills_pie_chart(data),
-            get_time_hist(map_data), get_year_plot(map_data)]
+            get_time_hist(hist_data), get_year_plot(map_data)]
 
 
 @app.callback(
@@ -359,8 +382,18 @@ def display_selected_data(selected_data, year_value, hour_value, checkboxes, cat
                 )
         data = data.sort_values(['count'], ascending=False)
 
+        hist_data = (map_data.groupby(
+            ['pcf_violation_category', 'hour'])
+                     .agg(count=('pcf_violation_category', 'count'),
+                          bicycle_deaths=('bicyclist_killed_count', 'sum'),
+                          bicycle_injured=('bicyclist_injured_count', 'sum')
+                          )
+                     .reset_index()
+                     )
+        hist_data = hist_data.sort_values(['count'], ascending=False)
+
         return [get_total_pie_chart(data), get_total_injured_pie_chart(data), get_total_kills_pie_chart(data),
-                get_time_hist(map_data), get_year_plot(map_data)]
+                get_time_hist(hist_data), get_year_plot(map_data)]
 
     index = app_data.index
     ids = [p['customdata'] for p in selected_data['points']]
@@ -379,8 +412,18 @@ def display_selected_data(selected_data, year_value, hour_value, checkboxes, cat
                 )
     pie_data = pie_data.sort_values(['pcf_violation_category'], ascending=False)
 
+    hist_data = (data.groupby(
+        ['pcf_violation_category', 'hour'])
+                 .agg(count=('pcf_violation_category', 'count'),
+                      bicycle_deaths=('bicyclist_killed_count', 'sum'),
+                      bicycle_injured=('bicyclist_injured_count', 'sum')
+                      )
+                 .reset_index()
+                 )
+    hist_data = hist_data.sort_values(['count'], ascending=False)
+
     return [get_total_pie_chart(pie_data), get_total_injured_pie_chart(pie_data),
-            get_total_kills_pie_chart(pie_data), get_time_hist(data), get_year_plot(data)]
+            get_total_kills_pie_chart(pie_data), get_time_hist(hist_data), get_year_plot(data)]
 
 
 def get_total_pie_chart(data):
@@ -395,7 +438,8 @@ def get_total_pie_chart(data):
 
 def get_total_injured_pie_chart(data):
     total = data['bicycle_injured'].sum()
-    pie = px.pie(data, values='bicycle_injured', names='pcf_violation_category', title='injured cyclists: {}'.format(total),
+    pie = px.pie(data, values='bicycle_injured', names='pcf_violation_category',
+                 title='injured cyclists: {}'.format(total),
                  color='pcf_violation_category',
                  color_discrete_map=category_color_map)
     pie.update_layout(transition_duration=500)
@@ -404,7 +448,8 @@ def get_total_injured_pie_chart(data):
 
 def get_total_kills_pie_chart(data):
     total = data['bicycle_deaths'].sum()
-    pie = px.pie(data, values='bicycle_deaths', names='pcf_violation_category', title='killed cyclists: {}'.format(total),
+    pie = px.pie(data, values='bicycle_deaths', names='pcf_violation_category',
+                 title='killed cyclists: {}'.format(total),
                  color='pcf_violation_category',
                  color_discrete_map=category_color_map)
     pie.update_layout(transition_duration=500)
@@ -433,15 +478,22 @@ def get_map_data(year_value, hour_value, checkboxes, categories):
 
 
 def get_time_hist(data):
-    return px.histogram(data, x="hour")
+    # return px.histogram(data, x="hour")
+    fig = px.bar(data, x="hour", y="count", color='pcf_violation_category', barmode='stack',
+                 color_discrete_map=category_color_map, title="collisions by hour")
+
+    return fig
 
 
 def get_year_plot(map_data):
     year_data = map_data[['collision_date']]
     year_data.index = year_data['collision_date']
-    year_data['count'] = year_data.resample('W-MON').count()['collision_date']
 
-    return px.scatter(year_data, x='collision_date', y='count', title='weekly bicycle collisions')
+    return px.scatter(year_data.resample('W-MON').count()['collision_date'], y='collision_date',
+                      title='weekly bicycle collisions', labels={
+            "index": "time",
+            "collision_date": "count"
+        }, )
 
 
 if __name__ == '__main__':
