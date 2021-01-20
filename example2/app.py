@@ -162,6 +162,32 @@ categories_labels = {1: "wrong side of road",
                      23: 'pedestrian dui',
                      }
 
+category_color_map = {
+    "wrong side of road": 'silver',
+    "automobile right of way": 'maroon',
+    "improper turning": 'teal',
+    "speeding": 'orange',
+    "traffic signals and signs": 'yellow',
+    "dui": 'cadetblue',
+    'other hazardous violation': 'cornflowerblue',
+    'unknown': 'darksalmon',
+    'improper passing': 'red',
+    'unsafe lane change': 'aqua',
+    'unsafe starting or backing': 'beige',
+    'following too closely': 'burlywood',
+    'other than driver (or pedestrian)': 'crimson',
+    'impeding traffic': 'darkgoldenrod',
+    'pedestrian violation': 'darkolivegreen',
+    'other improper driving': 'darkorchid',
+    'hazardous parking': 'deepskyblue',
+    'pedestrian right of way': 'gold',
+    'other equipment': 'springgreen',
+    'fell asleep': 'plum',
+    'brakes': 'lightgreen',
+    'lights': 'lightblue',
+    'pedestrian dui': 'hotpink'
+}
+
 app.layout = html.Div(children=[
     html.H1(children='Road-Rash-Board'),
     html.Div([
@@ -284,10 +310,11 @@ def update_figure(year_value, hour_value, checkboxes, categories):
     map_data = get_map_data(year_value, hour_value, checkboxes, categories)
     # map data
     fig = px.scatter_mapbox(map_data, lat="latitude", lon="longitude", color='hour', size='severity',
-                            size_max=15, hover_name='collision_date', color_continuous_scale=px.colors.cyclical.IceFire)
+                            size_max=15, hover_name='collision_date',
+                            color_continuous_scale=px.colors.cyclical.Twilight)
 
     fig.update_traces(customdata=map_data.index)
-    fig.update_layout(transition_duration=500, clickmode='event+select')
+    fig.update_layout(transition_duration=500, clickmode='event+select', height=640)
 
     data = (map_data.groupby(
         ['pcf_violation_category'])
@@ -350,27 +377,36 @@ def display_selected_data(selected_data, year_value, hour_value, checkboxes, cat
                      )
                 .reset_index()
                 )
-    pie_data = pie_data.sort_values(['count'], ascending=False)
+    pie_data = pie_data.sort_values(['pcf_violation_category'], ascending=False)
 
     return [get_total_pie_chart(pie_data), get_total_injured_pie_chart(pie_data),
             get_total_kills_pie_chart(pie_data), get_time_hist(data), get_year_plot(data)]
 
 
 def get_total_pie_chart(data):
-    pie = px.pie(data, values='count', names='pcf_violation_category', title='total collisions')
+    total = data['count'].sum()
+    pie = px.pie(data, values='count', names='pcf_violation_category', title='total collisions: {}'.format(total),
+                 color='pcf_violation_category',
+                 color_discrete_map=category_color_map)
     pie.update_layout(transition_duration=500)
 
     return pie
 
 
 def get_total_injured_pie_chart(data):
-    pie = px.pie(data, values='bicycle_injured', names='pcf_violation_category', title='injured cyclists')
+    total = data['bicycle_injured'].sum()
+    pie = px.pie(data, values='bicycle_injured', names='pcf_violation_category', title='injured cyclists: {}'.format(total),
+                 color='pcf_violation_category',
+                 color_discrete_map=category_color_map)
     pie.update_layout(transition_duration=500)
     return pie
 
 
 def get_total_kills_pie_chart(data):
-    pie = px.pie(data, values='bicycle_deaths', names='pcf_violation_category', title='killed cyclists')
+    total = data['bicycle_deaths'].sum()
+    pie = px.pie(data, values='bicycle_deaths', names='pcf_violation_category', title='killed cyclists: {}'.format(total),
+                 color='pcf_violation_category',
+                 color_discrete_map=category_color_map)
     pie.update_layout(transition_duration=500)
     return pie
 
@@ -404,6 +440,7 @@ def get_year_plot(map_data):
     year_data = map_data[['collision_date']]
     year_data.index = year_data['collision_date']
     year_data['count'] = year_data.resample('W-MON').count()['collision_date']
+
     return px.scatter(year_data, x='collision_date', y='count', title='weekly bicycle collisions')
 
 
