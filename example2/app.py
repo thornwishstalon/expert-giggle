@@ -271,39 +271,47 @@ app.layout = html.Div(children=[
     html.Div(
         [
             dcc.Loading(
-                id="loading",
+                id="loading_map",
                 children=[html.Div([
                     dcc.Graph(
                         id='map'
                     )
                 ], style={"margin-left": "20px"})],
                 type="circle",
-                fullscreen=True,
+                fullscreen=False,
             )
         ]
     ),
-    html.Div([
-        dcc.Graph(
-            id='categories_pie'
-        ), dcc.Graph(
-            id='categories_pie_injuries'
-        ), dcc.Graph(
-            id='categories_pie_killed',
-        )
+    dcc.Loading(
+        id="loading_charts",
+        children=[
+            html.Div([
+                dcc.Graph(
+                    id='categories_pie'
+                ), dcc.Graph(
+                    id='categories_pie_injuries'
+                ), dcc.Graph(
+                    id='categories_pie_killed',
+                )
 
-    ], style={'columnCount': 3}),
-    html.Div([
-        dcc.Graph(
-            id='times_hist'
-        ), dcc.Graph(
-            id='overall_timeline'
-        )
-    ], style={'columnCount': 2, "margin-left": "20px"})
+            ], style={'columnCount': 3}),
+            html.Div([
+                dcc.Graph(
+                    id='times_hist'
+                ), dcc.Graph(
+                    id='overall_timeline'
+                )
+            ], style={'columnCount': 2, "margin-left": "20px"})],
+        type="circle",
+        fullscreen=False,
+    )
+
 ])
 
 
 @app.callback(
     [
+        Output("map-chart", "selectedData"),
         Output('map', 'figure'),
         Output('categories_pie', 'figure'),
         Output('categories_pie_injuries', 'figure'),
@@ -317,7 +325,6 @@ app.layout = html.Div(children=[
         Input('checkboxes', 'value'),
         Input('categories', 'value'),
     ]
-
 )
 def update_figure(year_value, hour_value, checkboxes, categories):
     map_data = get_map_data(year_value, hour_value, checkboxes, categories)
@@ -349,7 +356,8 @@ def update_figure(year_value, hour_value, checkboxes, categories):
                  )
     hist_data = hist_data.sort_values(['count'], ascending=False)
 
-    return [fig, get_total_pie_chart(data), get_total_injured_pie_chart(data), get_total_kills_pie_chart(data),
+    return [None, fig, get_total_pie_chart(data), get_total_injured_pie_chart(data), get_total_kills_pie_chart(data),
+            # return [fig, get_total_pie_chart(data), get_total_injured_pie_chart(data), get_total_kills_pie_chart(data),
             get_time_hist(hist_data), get_year_plot(map_data)]
 
 
@@ -363,13 +371,14 @@ def update_figure(year_value, hour_value, checkboxes, categories):
     ],
     [
         Input('map', 'selectedData'),
-        Input('year-slider', 'value'),
-        Input('hour-slider', 'value'),
-        Input('checkboxes', 'value'),
-        Input('categories', 'value'),
+        State('year-slider', 'value'),
+        State('hour-slider', 'value'),
+        State('checkboxes', 'value'),
+        State('categories', 'value'),
     ]
 )
 def display_selected_data(selected_data, year_value, hour_value, checkboxes, categories):
+    # print(selected_data)
     if selected_data is None:
         map_data = get_map_data(year_value, hour_value, checkboxes, categories)
         data = (map_data.groupby(
