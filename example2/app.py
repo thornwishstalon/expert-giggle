@@ -62,6 +62,7 @@ def load_data(options):
     keys = []
 
     for item in options:
+        print("loading {}".format(item['label']))
         collisions = pd.read_csv('input_dash/{}_collisions.csv'.format(item['label']), parse_dates=["collision_date"],
                                  dtype={
                                      'case_id': 'str',
@@ -115,6 +116,7 @@ styles = {
 }
 
 options = [
+    {'label': '2010', 'value': 'collision_date between "2010-01-01" and "2010-12-31"'},
     {'label': '2011', 'value': 'collision_date between "2011-01-01" and "2011-12-31"'},
     {'label': '2012', 'value': 'collision_date between "2012-01-01" and "2012-12-31"'},
     {'label': '2013', 'value': 'collision_date between "2013-01-01" and "2013-12-31"'},
@@ -194,7 +196,7 @@ category_color_map = {
 }
 
 app.layout = html.Div(children=[
-    html.H1(children='Road-Rash-Board'),
+    html.H1(children='🚴 road-rashboard'),
     html.Div([
         html.Div([
             html.Label('Year Slider'),
@@ -304,7 +306,13 @@ app.layout = html.Div(children=[
             ], style={'columnCount': 2, "margin-left": "20px"})],
         type="circle",
         fullscreen=False,
-    )
+    ),
+    html.Div(
+        [
+            html.Footer(children=[
+                "Ⓒ Copyright 2021; made with dash,plotly and🚀 by Pechstein Fabian (e0726104@student.tuwien.ac.at)"
+            ])
+        ])
 
 ])
 
