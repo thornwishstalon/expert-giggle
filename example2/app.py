@@ -16,6 +16,48 @@ from dash.dependencies import Input, Output, State
 token = open(".mapbox_token").read()
 
 
+def get_continuous_color(colorscale, intermed):
+    """
+    Plotly continuous colorscales assign colors to the range [0, 1]. This function computes the intermediate
+    color for any value in that range.
+
+    Plotly doesn't make the colorscales directly accessible in a common format.
+    Some are ready to use:
+
+        colorscale = plotly.colors.PLOTLY_SCALES["Greens"]
+
+    Others are just swatches that need to be constructed into a colorscale:
+
+        viridis_colors, scale = plotly.colors.convert_colors_to_same_type(plotly.colors.sequential.Viridis)
+        colorscale = plotly.colors.make_colorscale(viridis_colors, scale=scale)
+
+    :param colorscale: A plotly continuous colorscale defined with RGB string colors.
+    :param intermed: value in the range [0, 1]
+    :return: color in rgb string format
+    :rtype: str
+    """
+    if len(colorscale) < 1:
+        raise ValueError("colorscale must have at least one color")
+
+    if intermed <= 0 or len(colorscale) == 1:
+        return colorscale[0][1]
+    if intermed >= 1:
+        return colorscale[-1][1]
+
+    for cutoff, color in colorscale:
+        if intermed > cutoff:
+            low_cutoff, low_color = cutoff, color
+        else:
+            high_cutoff, high_color = cutoff, color
+            break
+
+    # noinspection PyUnboundLocalVariable
+    return px.colors.find_intermediate_color(
+        lowcolor=low_color, highcolor=high_color,
+        intermed=((intermed - low_cutoff) / (high_cutoff - low_cutoff)),
+        colortype="rgb")
+
+
 def create_connection(db_file):
     """ create a database connection to the SQLite database
         specified by the db_file
@@ -194,6 +236,8 @@ category_color_map = {
     'lights': 'lightblue',
     'pedestrian dui': 'hotpink'
 }
+twilight_colors, _ = px.colors.convert_colors_to_same_type(px.colors.cyclical.Twilight)
+colorscale = px.colors.make_colorscale(twilight_colors)
 
 app.layout = html.Div(children=[
     html.H1(children='road-rashboard 🚴 '),
@@ -215,7 +259,9 @@ app.layout = html.Div(children=[
                 id='hour-slider',
                 min=0,
                 max=23,
-                marks={i: '{}h'.format(str(i)) for i in range(0, 23)},
+                marks={i: {'label': '{}h'.format(str(i)),
+                           'style': {'color': get_continuous_color(colorscale, float(i) / 23)},
+                           } for i in range(0, 23)},
                 value=[0, 23],
             )]
             , style={"margin-bottom": "20px"}
@@ -269,7 +315,7 @@ app.layout = html.Div(children=[
             , style={"margin-bottom": "20px"}
         ),
 
-    ], style={'columnCount': 1, "margin": "20px"}),
+    ], style={'columnCount': 1}),
     html.Div(
         [
             dcc.Loading(
@@ -310,14 +356,15 @@ app.layout = html.Div(children=[
     html.Div(
         [
             html.Footer(children=[
-                #"Ⓒ Copyright 2021; made with dash, plotly and 🚀 by Fabian Pechstein",
+                # "Ⓒ Copyright 2021; made with dash, plotly and 🚀 by Fabian Pechstein",
                 "made with dash, plotly and 🚀 by Fabian Pechstein",
                 html.Br(),
-                "write me: ",
-                html.A(' 0726104', href="mailto:e0726104@student.tuwien.ac.at"),
+                html.A(' write me', href="mailto:e0726104@student.tuwien.ac.at"),
                 html.Br(),
                 "Data by: ",
-                html.A("California Traffic Collision Data from SWITRS ❤️ ", href='https://www.kaggle.com/alexgude/california-traffic-collision-data-from-switrs', target="_blank")
+                html.A("California Traffic Collision Data from SWITRS ❤️ ",
+                       href='https://www.kaggle.com/alexgude/california-traffic-collision-data-from-switrs',
+                       target="_blank")
 
             ])
         ])
