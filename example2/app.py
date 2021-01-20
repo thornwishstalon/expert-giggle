@@ -196,7 +196,7 @@ category_color_map = {
 }
 
 app.layout = html.Div(children=[
-    html.H1(children='🚴 road-rashboard'),
+    html.H1(children='road-rashboard 🚴 '),
     html.Div([
         html.Div([
             html.Label('Year Slider'),
@@ -310,7 +310,15 @@ app.layout = html.Div(children=[
     html.Div(
         [
             html.Footer(children=[
-                "Ⓒ Copyright 2021; made with dash,plotly and🚀 by Pechstein Fabian (e0726104@student.tuwien.ac.at)"
+                #"Ⓒ Copyright 2021; made with dash, plotly and 🚀 by Fabian Pechstein",
+                "made with dash, plotly and 🚀 by Fabian Pechstein",
+                html.Br(),
+                "write me: ",
+                html.A(' 0726104', href="mailto:e0726104@student.tuwien.ac.at"),
+                html.Br(),
+                "Data by: ",
+                html.A("California Traffic Collision Data from SWITRS ❤️ ", href='https://www.kaggle.com/alexgude/california-traffic-collision-data-from-switrs', target="_blank")
+
             ])
         ])
 
