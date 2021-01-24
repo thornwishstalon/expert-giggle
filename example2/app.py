@@ -78,7 +78,7 @@ def wrapData(options, overwrite=False):
     for item in options:
         filename = 'input_dash/{}_collisions.csv'.format(item['label'])
         if not os.path.isfile(filename) or overwrite:
-            print(item['label'])
+            # print(item['label'])
             query = '''SELECT * FROM collisions where 
                     collision_date IS NOT NULL and {} and bicycle_collision = 1'''  #
             collisions = pd.read_sql_query(query.format(item['value']), connection, parse_dates=["collision_date"])
@@ -87,10 +87,10 @@ def wrapData(options, overwrite=False):
 
 
 def calcSeverity(x):
-    default = 10;
+    default = 10
     killed = x['bicyclist_injured_count'] * 2
     injured = x['bicyclist_killed_count']
-    return default + injured * 2 + killed * 5
+    return default + injured * 3 + killed * 5
 
 
 def has_deaths(row):
@@ -119,6 +119,7 @@ def load_data(options):
                                      'latitude': 'float',
                                      'longitude': 'float',
                                      'state_route': 'str',  # ?
+                                     'caltrans_district': 'str',  # ?
                                      'caltrans_district': 'str',  # ?
                                      'route_suffix': 'str',  # ?
                                  })
@@ -171,9 +172,6 @@ options = [
     {'label': '2020', 'value': 'collision_date between "2019-12-31" and "2021-01-01"'}
 ]
 
-overwrite = False
-wrapData(options, overwrite=overwrite)
-app_data = load_data(options)
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
@@ -236,6 +234,7 @@ category_color_map = {
     'lights': 'lightblue',
     'pedestrian dui': 'hotpink'
 }
+
 twilight_colors, _ = px.colors.convert_colors_to_same_type(px.colors.cyclical.Twilight)
 colorscale = px.colors.make_colorscale(twilight_colors)
 
@@ -251,7 +250,7 @@ app.layout = html.Div(children=[
                 marks={i: '{}'.format(years_labels[i]) for i in range(0, 10)},
                 value=[5, 10],
             )]
-            , style={"margin-bottom": "20px"}
+            , style={"marginBottom": "20px"}
         ),
         html.Div([
             html.Label('Hours Slider'),
@@ -264,7 +263,7 @@ app.layout = html.Div(children=[
                            } for i in range(0, 23)},
                 value=[0, 23],
             )]
-            , style={"margin-bottom": "20px"}
+            , style={"marginBottom": "20px"}
         ),
         html.Div([
             html.Label('categories'),
@@ -298,10 +297,10 @@ app.layout = html.Div(children=[
                 value=[1, 2, 3, 4, 5, 6],
                 multi=True,
             )]
-            , style={"margin-bottom": "20px"}
+            , style={"marginBottom": "20px"}
         ),
         html.Div([
-            html.Label('Misc.'),
+            html.Label('Severity Filter'),
             dcc.RadioItems(
                 id='checkboxes',
                 options=[
@@ -310,46 +309,114 @@ app.layout = html.Div(children=[
                     {'label': 'all', 'value': 3},
                 ],
                 value=3,
-                style={"margin-bottom": "20px"}
+                style={"marginBottom": "20px"}
             )]
-            , style={"margin-bottom": "20px"}
+            , style={"marginBottom": "20px"}
         ),
 
     ], style={'columnCount': 1}),
     html.Div(
         [
-            dcc.Loading(
-                id="loading_map",
-                children=[html.Div([
-                    dcc.Graph(
-                        id='map'
-                    )
-                ], style={"margin-left": "20px"})],
-                type="circle",
-                fullscreen=False,
+            dcc.Graph(
+                id='map'
             )
+            # dcc.Loading(
+            #     id="loading_map",
+            #     children=[
+            #         dcc.Graph(
+            #             id='map'
+            #         )
+            #     ],
+            #     type="circle",
+            #     fullscreen=False,
+            # )
         ]
     ),
+
+    html.Div([
+        dcc.Loading(
+            id="loading_state_total_chart",
+            children=[
+                dcc.Graph(
+                    id='state_categories_pie'
+                ),
+            ],
+            type="circle",
+            fullscreen=False,
+        ),
+        dcc.Loading(
+            id="loading_state_injury_chart",
+            children=[
+                dcc.Graph(
+                    id='state_categories_pie_injuries'
+                ),
+            ],
+            type="circle",
+            fullscreen=False,
+        ),
+        dcc.Loading(
+            id="loading_state_killed_chart",
+            children=[
+
+                dcc.Graph(
+                    id='state_categories_pie_killed',
+                ),
+            ],
+            type="circle",
+            fullscreen=False,
+        ),
+        dcc.Loading(
+            id="loading_total_chart",
+            children=[
+                dcc.Graph(
+                    id='categories_pie'
+                ),
+
+            ],
+            type="circle",
+            fullscreen=False,
+        ),
+        dcc.Loading(
+            id="loading_total_injury_chart",
+            children=[
+                dcc.Graph(
+                    id='categories_pie_injuries'
+                ),
+
+            ],
+            type="circle",
+            fullscreen=False,
+        ),
+        dcc.Loading(
+            id="loading_total_killed_chart",
+            children=[
+                dcc.Graph(
+                    id='categories_pie_killed',
+                )
+            ],
+            type="circle",
+            fullscreen=False,
+        ),
+
+    ], style={'columnCount': 2}),
     dcc.Loading(
         id="loading_charts",
         children=[
             html.Div([
                 dcc.Graph(
-                    id='categories_pie'
-                ), dcc.Graph(
-                    id='categories_pie_injuries'
-                ), dcc.Graph(
-                    id='categories_pie_killed',
-                )
-
-            ], style={'columnCount': 3}),
-            html.Div([
+                    id='state_times_hist'
+                ),
+                dcc.Graph(
+                    id='state_overall_timeline'
+                ),
                 dcc.Graph(
                     id='times_hist'
-                ), dcc.Graph(
+                ),
+                dcc.Graph(
                     id='overall_timeline'
                 )
-            ], style={'columnCount': 2, "margin-left": "20px"})],
+            ], style={'columnCount': 2})
+        ],
         type="circle",
         fullscreen=False,
     ),
@@ -374,13 +441,18 @@ app.layout = html.Div(children=[
 
 @app.callback(
     [
-        Output("map-chart", "selectedData"),
+        #Output("map-chart", "selectedData"),
         Output('map', 'figure'),
         Output('categories_pie', 'figure'),
         Output('categories_pie_injuries', 'figure'),
         Output('categories_pie_killed', 'figure'),
         Output('times_hist', 'figure'),
         Output('overall_timeline', 'figure'),
+        Output('state_categories_pie', 'figure'),
+        Output('state_categories_pie_injuries', 'figure'),
+        Output('state_categories_pie_killed', 'figure'),
+        Output('state_times_hist', 'figure'),
+        Output('state_overall_timeline', 'figure'),
     ],
     [
         Input('year-slider', 'value'),
@@ -391,13 +463,15 @@ app.layout = html.Div(children=[
 )
 def update_figure(year_value, hour_value, checkboxes, categories):
     map_data = get_map_data(year_value, hour_value, checkboxes, categories)
+    state_map_data = map_data.copy()
     # map data
+    map_data.dropna(subset=['longitude', 'latitude'], inplace=True)
     fig = px.scatter_mapbox(map_data, lat="latitude", lon="longitude", color='hour', size='severity',
                             size_max=15, hover_name='collision_date',
                             color_continuous_scale=px.colors.cyclical.Twilight)
 
     fig.update_traces(customdata=map_data.index)
-    fig.update_layout(transition_duration=500, clickmode='event+select', height=640)
+    fig.update_layout(transition_duration=700, clickmode='event+select', height=640)
 
     data = (map_data.groupby(
         ['pcf_violation_category'])
@@ -419,9 +493,37 @@ def update_figure(year_value, hour_value, checkboxes, categories):
                  )
     hist_data = hist_data.sort_values(['count'], ascending=False)
 
-    return [None, fig, get_total_pie_chart(data), get_total_injured_pie_chart(data), get_total_kills_pie_chart(data),
-            # return [fig, get_total_pie_chart(data), get_total_injured_pie_chart(data), get_total_kills_pie_chart(data),
-            get_time_hist(hist_data), get_year_plot(map_data)]
+    state_data = (state_map_data.groupby(
+        ['pcf_violation_category'])
+                  .agg(count=('pcf_violation_category', 'count'),
+                       bicycle_deaths=('bicyclist_killed_count', 'sum'),
+                       bicycle_injured=('bicyclist_injured_count', 'sum')
+                       )
+                  .reset_index()
+                  )
+    state_data = state_data.sort_values(['count'], ascending=False)
+
+    state_hist_data = (state_map_data.groupby(
+        ['pcf_violation_category', 'hour'])
+                       .agg(count=('pcf_violation_category', 'count'),
+                            bicycle_deaths=('bicyclist_killed_count', 'sum'),
+                            bicycle_injured=('bicyclist_injured_count', 'sum')
+                            )
+                       .reset_index()
+                       )
+    state_hist_data = state_hist_data.sort_values(['count'], ascending=False)
+
+    return [fig, get_total_pie_chart(data, 'total spatial collisions: {}'),
+            get_total_injured_pie_chart(data, 'total spatial injuries: {}'),
+            get_total_kills_pie_chart(data, 'total spatial fatalities: {}'),
+            get_time_hist(hist_data, 'spatial collisions by hour'),
+            get_year_plot(map_data, 'weekly spatial bicycle collisions'),
+            get_total_pie_chart(state_data, 'total statewide collisions: {}'),
+            get_total_injured_pie_chart(state_data, 'total statewide injuries: {}'),
+            get_total_kills_pie_chart(state_data, 'total statewide fatalities: {}'),
+            get_time_hist(state_hist_data, 'statewide collisions by hour'),
+            get_year_plot(state_map_data, 'weekly statewide bicycle collisions')
+            ]
 
 
 @app.callback(
@@ -441,9 +543,10 @@ def update_figure(year_value, hour_value, checkboxes, categories):
     ]
 )
 def display_selected_data(selected_data, year_value, hour_value, checkboxes, categories):
-    # print(selected_data)
+    print(selected_data)
     if selected_data is None:
         map_data = get_map_data(year_value, hour_value, checkboxes, categories)
+        map_data.dropna(subset=['longitude', 'latitude'], inplace=True)
         data = (map_data.groupby(
             ['pcf_violation_category'])
                 .agg(count=('pcf_violation_category', 'count'),
@@ -464,8 +567,11 @@ def display_selected_data(selected_data, year_value, hour_value, checkboxes, cat
                      )
         hist_data = hist_data.sort_values(['count'], ascending=False)
 
-        return [get_total_pie_chart(data), get_total_injured_pie_chart(data), get_total_kills_pie_chart(data),
-                get_time_hist(hist_data), get_year_plot(map_data)]
+        return [get_total_pie_chart(data, 'total spatial collisions: {}'),
+                get_total_injured_pie_chart(data, 'total spatial injuries: {}'),
+                get_total_kills_pie_chart(data, 'total spatial fatalities: {}'),
+                get_time_hist(hist_data, 'spatial collisions by hour'),
+                get_year_plot(map_data, 'weekly spatial collisions')]
 
     index = app_data.index
     ids = [p['customdata'] for p in selected_data['points']]
@@ -494,13 +600,15 @@ def display_selected_data(selected_data, year_value, hour_value, checkboxes, cat
                  )
     hist_data = hist_data.sort_values(['count'], ascending=False)
 
-    return [get_total_pie_chart(pie_data), get_total_injured_pie_chart(pie_data),
-            get_total_kills_pie_chart(pie_data), get_time_hist(hist_data), get_year_plot(data)]
+    return [get_total_pie_chart(pie_data, 'total spatial collisions: {}'),
+            get_total_injured_pie_chart(pie_data, 'total spatial injuries: {}'),
+            get_total_kills_pie_chart(pie_data, 'total spatial fatalities: {}'),
+            get_time_hist(hist_data, 'spatial collisions by hour'), get_year_plot(data, 'weekly spatial collisions')]
 
 
-def get_total_pie_chart(data):
+def get_total_pie_chart(data, title):
     total = data['count'].sum()
-    pie = px.pie(data, values='count', names='pcf_violation_category', title='total collisions: {}'.format(total),
+    pie = px.pie(data, values='count', names='pcf_violation_category', title=title.format(total),
                  color='pcf_violation_category',
                  color_discrete_map=category_color_map)
     pie.update_layout(transition_duration=500)
@@ -508,20 +616,20 @@ def get_total_pie_chart(data):
     return pie
 
 
-def get_total_injured_pie_chart(data):
+def get_total_injured_pie_chart(data, title):
     total = data['bicycle_injured'].sum()
     pie = px.pie(data, values='bicycle_injured', names='pcf_violation_category',
-                 title='injured cyclists: {}'.format(total),
+                 title=title.format(total),
                  color='pcf_violation_category',
                  color_discrete_map=category_color_map)
     pie.update_layout(transition_duration=500)
     return pie
 
 
-def get_total_kills_pie_chart(data):
+def get_total_kills_pie_chart(data, title):
     total = data['bicycle_deaths'].sum()
     pie = px.pie(data, values='bicycle_deaths', names='pcf_violation_category',
-                 title='killed cyclists: {}'.format(total),
+                 title=title.format(total),
                  color='pcf_violation_category',
                  color_discrete_map=category_color_map)
     pie.update_layout(transition_duration=500)
@@ -549,24 +657,28 @@ def get_map_data(year_value, hour_value, checkboxes, categories):
     return map_data
 
 
-def get_time_hist(data):
+def get_time_hist(data, title):
     # return px.histogram(data, x="hour")
     fig = px.bar(data, x="hour", y="count", color='pcf_violation_category', barmode='stack',
-                 color_discrete_map=category_color_map, title="collisions by hour")
+                 color_discrete_map=category_color_map, title=title)
 
     return fig
 
 
-def get_year_plot(map_data):
+def get_year_plot(map_data, title):
     year_data = map_data[['collision_date']]
     year_data.index = year_data['collision_date']
 
     return px.scatter(year_data.resample('W-MON').count()['collision_date'], y='collision_date',
-                      title='weekly bicycle collisions', labels={
+                      title=title, labels={
             "index": "time",
             "collision_date": "count"
         }, )
 
 
 if __name__ == '__main__':
+    overwrite = False
+    wrapData(options, overwrite=overwrite)
+    app_data = load_data(options)
+
     app.run_server(debug=True)
